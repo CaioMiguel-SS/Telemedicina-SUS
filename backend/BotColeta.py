@@ -33,7 +33,8 @@ chat = model.start_chat(history=[{"role": "user", "parts": [system_prompt]}])
 # =============================
 # BANCO SQLITE
 # =============================
-DB_PATH = os.path.join(os.path.dirname(__file__), "conversas.db")
+DB_PATH = r"C:\Users\Willian\Desktop\ProjetoSUS\banco-de-dados\clinica.db"
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
