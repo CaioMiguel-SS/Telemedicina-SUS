@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import re
 import google.generativeai as genai
 from datetime import datetime
 
@@ -13,12 +14,11 @@ model = genai.GenerativeModel("gemini-2.5-flash")
 
 system_prompt = (
     "Você é um assistente de Saúde em IA. "
-    "Seu papel é coletar informações básicas (Nome, Idade, CEP, Numero de celular e os Sintomas do paciente) "
-    "Porém, NÃO peça essas informações você mesmo, somente comente e dê conselhos baseados nos dados do paciente. "
+    "Seu papel é coletar informações básicas (Nome, Idade, CEP, Numero de celular e os Sintomas do paciente). "
+    "Porém, NÃO peça essas informações você mesmo, apenas comente e dê conselhos baseados nos dados do paciente. "
     "Depois que todas as informações forem coletadas, dê um resumo das mesmas "
-    "E envie esse link para o paciente: https://meet.google.com/ovr-ocwa-mxi."
+    "e envie esse link para o paciente: https://meet.google.com/ovr-ocwa-mxi."
 )
-
 
 chat = model.start_chat(history=[{"role": "user", "parts": [system_prompt]}])
 
@@ -76,23 +76,42 @@ def salvar_paciente(dados):
 
 init_db()
 
+# VALIDAÇÕES DE DADOS
+def validar_nome(nome):
+    return len(nome.strip()) >= 2 and all(c.isalpha() or c.isspace() for c in nome)
+
+def validar_idade(idade):
+    return idade.isdigit() and 0 < int(idade) < 120
+
+def validar_endereco(endereco):
+    return len(endereco.strip()) > 5
+
+def validar_telefone(telefone):
+    return re.fullmatch(r'\(?\d{2}\)?\s?\d{4,5}-?\d{4}', telefone) is not None
+
+def validar_sintomas(sintomas):
+    return len(sintomas.strip()) >= 3
+
+
 # COLETA GUIADA DINÂMICA
 campos = [
-    ('nome', "Qual é o seu nome?"),
-    ('idade', "Qual é a sua idade?"),
-    ('endereco', "Qual é o seu endereço?"),
-    ('telefone', "Qual é o seu telefone?"),
-    ('sintomas', "Quais são os seus sintomas?")
+    ('nome', "Qual é o seu nome?", validar_nome, "Por favor, digite um nome válido."),
+    ('idade', "Qual é a sua idade?", validar_idade, "Por favor, insira uma idade válida entre 1 e 119."),
+    ('endereco', "Qual é o seu endereço?", validar_endereco, "Endereço muito curto. Tente novamente."),
+    ('telefone', "Qual é o seu telefone?", validar_telefone, "Por favor, insira um telefone no formato válido. Ex: (11) 91234-5678"),
+    ('sintomas', "Quais são os seus sintomas?", validar_sintomas, "Por favor, descreva ao menos brevemente seus sintomas.")
 ]
 
 print("🤖 Chatbot rodando. Digite 'sair' a qualquer momento para encerrar.\n")
 print("Sou seu assistente de saúde. Vou fazer algumas perguntas para entender melhor sua situação.\n")
+
 paciente = {}
 
-for chave, pergunta in campos:
+for chave, pergunta, func_validar, msg_erro in campos:
     while True:
-        user = input(f"{pergunta}\nVocê: ")
-        if not user.strip():
+        user = input(f"{pergunta}\nVocê: ").strip()
+
+        if not user:
             print("Por favor, digite alguma coisa.")
             continue
         if user.lower() in {"sair", "exit", "quit"}:
@@ -100,15 +119,18 @@ for chave, pergunta in campos:
             salvar_dialogo("Sistema", "Sessão encerrada pelo usuário.")
             exit()
 
+        if not func_validar(user):
+            print(msg_erro)
+            continue
+
         salvar_dialogo("Usuário", user)
         paciente[chave] = user
 
-        # Resposta do assistente
         response = chat.send_message(user)
         ai_message = response.text or "Desculpe, não consegui gerar uma resposta."
         print("Assistente:", ai_message)
         salvar_dialogo("Assistente", ai_message)
-        break  # vai para próxima pergunta
+        break
 
 # Salva paciente completo
 salvar_paciente(paciente)
