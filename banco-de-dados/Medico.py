@@ -10,7 +10,7 @@ from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
-DB_PATH = "clinica.db"
+DB_PATH = r"../backend/db/clinica.db"
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
