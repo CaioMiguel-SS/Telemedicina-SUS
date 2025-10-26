@@ -22,7 +22,7 @@ system_prompt = (
     "Você é um assistente virtual de saúde chamado SUSBot, responsável por conversar com pacientes "
     "de forma educada, empática e objetiva.\n"
     "Seu papel é ajudar o paciente a informar dados básicos para o cadastro: "
-    "nome, idade, endereço (rua e número), CEP, telefone e sintomas.\n"
+    "nome, idade, endereço (rua, número e CEP), telefone e sintomas.\n"
     "⚙️ Importante:\n"
     "- Extraia automaticamente os dados das mensagens do paciente.\n"
     "- Não confirme nem invente dados.\n"
@@ -38,59 +38,6 @@ os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS dialogos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT,
-            autor TEXT,
-            mensagem TEXT
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS pacientes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT,
-            idade TEXT,
-            endereco TEXT,
-            cep TEXT,
-            telefone TEXT,
-            sintomas TEXT,
-            data_registro TEXT
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS medico (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT NOT NULL,
-        login TEXT NOT NULL UNIQUE,
-        senha TEXT NOT NULL
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS consulta (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        id_paciente INTEGER NOT NULL,
-        id_ubs INTEGER NOT NULL,
-        data_hora TEXT NOT NULL,
-        urgencia TEXT,
-        FOREIGN KEY (id_paciente) REFERENCES pacientes(id),
-        FOREIGN KEY (id_ubs) REFERENCES ubs(id)
-        )
-    """)
-
-    cursor.execute("""
-            CREATE TABLE IF NOT EXISTS ubs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome TEXT NOT NULL,
-    endereco TEXT NOT NULL,
-    latitude REAL NOT NULL,
-    longitude REAL NOT NULL
-    )   
-    """)
 
     conn.commit()
     conn.close()
@@ -111,12 +58,11 @@ def salvar_paciente(dados):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO pacientes (nome, idade, endereco, cep, telefone, sintomas, data_registro) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO pacientes (nome, idade, endereco, telefone, sintomas, data_registro) VALUES (?, ?, ?, ?, ?, ?)",
             (
                 dados.get("nome", ""),
                 dados.get("idade", ""),
                 dados.get("endereco", ""),
-                dados.get("cep", ""),
                 dados.get("telefone", ""),
                 dados.get("sintomas", ""),
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -160,17 +106,14 @@ def analisar_dados(mensagem):
 
     # Endereço
     padroes_endereco = [
-        r"moro (?:na|no|em)\s*([A-Za-zÀ-ÿ0-9\s,º\-]+)",
-        r"endere[cç]o\s*[:\-]?\s*([A-Za-zÀ-ÿ0-9\s,º\-]+)"
+        r"moro (?:na|no|em)\s*([A-Za-zÀ-ÿ\s]+,\s*\d+,\s*\d{5}-?\d{3})",  # Rua, número, CEP
+        r"endere[cç]o\s*[:\-]?\s*([A-Za-zÀ-ÿ\s]+,\s*\d+,\s*\d{5}-?\d{3})",
+        r"(?:rua|avenida|av\.?)\s*([A-Za-zÀ-ÿ\s]+,\s*\d+,\s*\d{5}-?\d{3})"
     ]
     for p in padroes_endereco:
         if m := re.search(p, mensagem, re.IGNORECASE):
             dados["endereco"] = m.group(1).strip().title()
             break
-
-    # CEP
-    if m := re.search(r"cep\s*[:\-]?\s*(\d{5}-?\d{3})", mensagem, re.IGNORECASE):
-        dados["cep"] = m.group(1).replace("-", "")
 
     # Telefone
     if m := re.search(r"(\(?\d{2}\)?\s*\d{4,5}-?\d{4})", mensagem):
@@ -191,11 +134,11 @@ def analisar_dados(mensagem):
     return dados
 
 def dados_completos(dados):
-    campos = ["nome", "idade", "endereco", "cep", "telefone", "sintomas"]
+    campos = ["nome", "idade", "endereco", "telefone", "sintomas"]
     return all(campo in dados and dados[campo] for campo in campos)
 
 def campos_faltando(dados):
-    campos = ["nome", "idade", "endereco", "cep", "telefone", "sintomas"]
+    campos = ["nome", "idade", "endereco", "telefone", "sintomas"]
     return [c for c in campos if not dados.get(c)]
 
 # =============================
@@ -270,11 +213,11 @@ def get_history():
 def get_pacientes():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT nome, idade, endereco, cep, telefone, sintomas, data_registro FROM pacientes")
+    cursor.execute("SELECT nome, idade, endereco, telefone, sintomas, data_registro FROM pacientes")
     rows = cursor.fetchall()
     conn.close()
     return jsonify([
-        {"nome": r[0], "idade": r[1], "endereco": r[2], "cep": r[3], "telefone": r[4], "sintomas": r[5], "data_registro": r[6]}
+        {"nome": r[0], "idade": r[1], "endereco": r[2], "telefone": r[3], "sintomas": r[4], "data_registro": r[5]}
         for r in rows
     ])
 
