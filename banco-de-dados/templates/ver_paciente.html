@@ -15,8 +15,8 @@
         }
         .sidebar {
             width: 300px;
-            background-color: #2E7D32;
-            color: #fff;
+            background-color: #1976D2; /* Azul escuro */
+            color: #fff; /* Texto branco */
             padding: 20px;
             overflow-y: auto;
         }
@@ -33,7 +33,7 @@
             transition: 0.3s;
         }
         .ubs-item.selected {
-            background-color: #FFD700;
+            background-color: #BBDEFB; /* Azul claro quando selecionado */
             color: #000;
             font-weight: bold;
         }
@@ -44,7 +44,7 @@
         }
         header {
             padding: 20px;
-            background: linear-gradient(135deg, #4CAF50, #81C784);
+            background: linear-gradient(135deg, #2196F3, #64B5F6); /* Azul gradiente */
             text-align: center;
             color: #fff;
         }
@@ -65,8 +65,15 @@
             font-weight: bold;
             cursor: pointer;
         }
-        input[type=submit] { background-color: #FFD700; }
-        .btn { background-color: #4CAF50; color: white; text-decoration: none; }
+        input[type=submit] {
+            background-color: #1976D2; /* Azul escuro */
+            color: #fff;
+        }
+        .btn {
+            background-color: #2196F3; /* Azul gradiente */
+            color: white;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
@@ -93,30 +100,29 @@
     </header>
     <div id="map"></div>
     <div style="text-align:center; margin:20px;">
-    <a href="{{ url_for('gerar_atestado', paciente_id=paciente.id) }}" class="btn" style="background-color:#FF9800; color:white;">Gerar Atestado</a>
-</div>
+        <a href="{{ url_for('gerar_atestado', paciente_id=paciente.id) }}" class="btn">Gerar Atestado</a>
+    </div>
 
+    {% if ubs_proximas %}
+    <form method="POST" style="text-align:center;">
+        <input type="hidden" name="ubs" id="ubsInput" required>
 
- {% if ubs_proximas %}
-<form method="POST" style="text-align:center;">
-    <input type="hidden" name="ubs" id="ubsInput" required>
+        <label>Nível de Atendimento:</label>
+        <select name="urgencia" required>
+            <option value="Baixa">Baixa</option>
+            <option value="Média">Média</option>
+            <option value="Alta">Alta</option>
+        </select>
 
-    <label>Nível de Atendimento:</label>
-    <select name="urgencia" required>
-        <option value="Baixa">Baixa</option>
-        <option value="Média">Média</option>
-        <option value="Alta">Alta</option>
-    </select>
+        <label>Data da Consulta:</label>
+        <input type="date" name="data_consulta" required>
 
-    <label>Data da Consulta:</label>
-    <input type="date" name="data_consulta" required>
+        <label>Hora da Consulta:</label>
+        <input type="time" name="hora_consulta" required>
 
-    <label>Hora da Consulta:</label>
-    <input type="time" name="hora_consulta" required>
-
-    <input type="submit" value="Marcar Consulta">
-</form>
-{% endif %}
+        <input type="submit" value="Marcar Consulta">
+    </form>
+    {% endif %}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -181,7 +187,7 @@
                 duration: 3000,
                 gravity: "top",
                 position: "right",
-                backgroundColor: "#4CAF50",
+                backgroundColor: "#2196F3",
                 stopOnFocus: true,
             }).showToast();
         });

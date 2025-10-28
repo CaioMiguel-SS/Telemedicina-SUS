@@ -6,18 +6,61 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
 body {
-    margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center;
-    background: linear-gradient(135deg, #4CAF50, #81C784);
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #2196F3, #64B5F6); /* Azul degradê */
     font-family: 'Roboto', sans-serif;
 }
 .login-box {
-    background: #fff; padding: 40px; border-radius: 15px; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    background: #ffffff; /* Caixa branca */
+    padding: 40px;
+    border-radius: 20px;
+    width: 360px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
 }
-.login-box h2 { text-align: center; margin-bottom: 30px; color:#4CAF50; }
-.login-box input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; }
-.login-box button { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #4CAF50; color: #fff; font-size: 16px; cursor: pointer; }
-.login-box button:hover { background: #43a047; }
-.flash { color: red; text-align: center; margin-bottom: 10px; }
+.login-box:hover {
+    transform: translateY(-5px);
+}
+.login-box h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color:#2196F3; /* Título azul */
+    font-weight: 700;
+}
+.login-box input {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+    font-size: 14px;
+}
+.login-box button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: #2196F3; /* Botão azul */
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+.login-box button:hover {
+    background: #1976D2; /* Azul mais escuro no hover */
+    transform: scale(1.02);
+}
+.flash {
+    color: red;
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
 </style>
 </head>
 <body>
